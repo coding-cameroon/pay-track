@@ -12,6 +12,7 @@ import {
 } from "@/errors/AppError";
 import { mediaService } from "../media/media.service.js";
 import { verifyWebhook } from "@clerk/express/webhooks";
+import { ADMIN_EMAIL } from "@/config/env.js";
 
 class UserController {
   // ---------------------------------------------------
@@ -50,10 +51,13 @@ class UserController {
           const existing = await userService.getUserByClerkId(id, session);
           if (existing) throw new ConflictError("User already exists");
 
+          const isAdmin = ADMIN_EMAIL === email;
+
           await userService.createUser(
             {
               clerkId: id,
               email,
+              role: isAdmin ? "admin" : "user",
               fullName: `${first_name} ${last_name}`,
               imageUrl: image_url,
             },
