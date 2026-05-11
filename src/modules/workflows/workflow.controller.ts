@@ -8,6 +8,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@/errors/AppError";
+import { cancelSubscriptionReminders } from "@/qstash/cancelScheduleNotifications.js";
 
 class WorkflowController {
   // ---------------------------------------------------
@@ -165,8 +166,15 @@ class WorkflowController {
         throw new BadRequestError("Only pending workflows can be cancelled");
       }
 
-      // TODO: Cancel the QStash job before marking as cancelled
-      // await qstash.messages.delete(workflow.qstashId);
+      // Cancel the QStash job before marking as cancelled
+      try {
+        await cancelSubscriptionReminders(
+          String(workflow.subscriptionId),
+          session,
+        );
+      } catch (err) {
+        console.warn(`failed to mark workdflow are cancelled: ${err}`);
+      }
 
       const cancelled = await workflowService.cancelWorkflow(
         workflowId,

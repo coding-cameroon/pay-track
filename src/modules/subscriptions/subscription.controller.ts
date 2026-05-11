@@ -1,13 +1,18 @@
 import mongoose, { Types } from "mongoose";
 import type { NextFunction, Request, Response } from "express";
 
-import { successResponse } from "@/utils/responses";
-import { subscriptionService } from "./subscription.service";
 import {
   BadRequestError,
   ForbiddenError,
+  InternalError,
   NotFoundError,
 } from "@/errors/AppError";
+import { successResponse } from "@/utils/responses";
+import { subscriptionService } from "./subscription.service";
+import { scheduleSubscriptionReminders } from "@/qstash/scheduleNotifications";
+import { rescheduleSubscriptionReminders } from "@/qstash/rescheduleNotification.js";
+import { logger } from "@/logger/logger.js";
+import { cancelSubscriptionReminders } from "@/qstash/cancelScheduleNotifications.js";
 
 class SubscriptionController {
   // ---------------------------------------------------
@@ -60,8 +65,18 @@ class SubscriptionController {
         session,
       );
 
-      // TODO: Schedule QStash reminders for this subscription
-      // await scheduleReminders(subscription, req.user.id);
+      // Schedule QStash reminders for this subscription
+      // Schedule QStash reminders for this subscription
+      try {
+        await scheduleSubscriptionReminders(subscription, session);
+      } catch (err) {
+        logger.error(
+          `Failed to schedule reminders for sub ${subscription._id}: ${err}`,
+        );
+        throw new InternalError(
+          "Unable to complete the subscription setup. Please try again.",
+        );
+      }
 
       await session.commitTransaction();
       successResponse(
@@ -276,8 +291,20 @@ class SubscriptionController {
         session,
       );
 
-      // TODO: If startDate or frequency changed, reschedule QStash reminders
-      // await rescheduleReminders(subscription, req.user.id);
+      // If startDate or frequency changed, reschedule QStash reminders
+      if ((startDate || frequency) && updated) {
+        try {
+          await rescheduleSubscriptionReminders(updated, session);
+        } catch (err) {
+          logger.error(
+            `Failed to reschedule reminders for sub ${updated._id}: ${err}`,
+          );
+
+          throw new InternalError(
+            "Failed to set up schedule for this sunscription. Please try again.",
+          );
+        }
+      }
 
       await session.commitTransaction();
       successResponse(res, 200, updated, "Subscription updated successfully");
@@ -323,8 +350,14 @@ class SubscriptionController {
         );
       }
 
-      // TODO: Cancel all pending QStash reminders for this subscription
-      // await cancelReminders(subscriptionId);
+      // Cancel all pending QStash reminders for this subscription
+      try {
+        await cancelSubscriptionReminders(subscriptionId, session);
+      } catch (error) {
+        console.warn(
+          `Non-critical: Could not clear all QStash schedules for ${subscriptionId}`,
+        );
+      }
 
       await subscriptionService.deleteSubscription(subscriptionId, session);
 
