@@ -45,7 +45,7 @@ export function globalErrorHandler(
   console.error("Unhandled error:", err);
 
   return res.status(500).json({
-    error: err,
+    error: err.message,
     success: false,
     message: "Something went wrong. Please try again.",
     ...(NODE_ENV === "development" && { stack: err.stack, error: err }),
