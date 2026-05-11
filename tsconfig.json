@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    // Environment
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+
+    // Output
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": false,
+
+    // Absolute paths
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    // Strictness & interop
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
