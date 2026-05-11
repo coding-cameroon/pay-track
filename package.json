@@ -20,7 +20,7 @@
     "@arcjet/inspect": "^1.4.0",
     "@arcjet/node": "^1.4.0",
     "@clerk/express": "^2.1.15",
-    "@upstash/qstash": "^2.10.1",
+    "@upstash/workflow": "^1.2.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
