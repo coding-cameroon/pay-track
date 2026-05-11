@@ -6,7 +6,7 @@ interface CreateUserDto {
   email: string;
   fullName: string;
   imageUrl: string;
-  role?: "user" | "admin";
+  role: "user" | "admin";
 }
 
 interface UpdateUserDto {
