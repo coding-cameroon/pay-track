@@ -7,11 +7,7 @@ import { permit } from "@/middlewares/permission.middleware";
 
 const router = Router();
 
-router.post(
-  "/webhooks/clerk",
-  express.raw({ type: "application/json" }),
-  userController.handleClerkWebhook,
-);
+router.post("/webhooks/clerk", userController.handleClerkWebhook);
 
 router.get("/", requireAuth, permit("admin"), userController.getUsers);
 
