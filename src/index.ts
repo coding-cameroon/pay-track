@@ -32,11 +32,27 @@ app.use(
     origin: CLIENT_URL || "*",
   }),
 );
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req: any, res, buf) => {
+      if (req.originalUrl.includes("/webhooks/clerk")) {
+        req.rawBody = buf;
+      }
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(clerkMiddleware());
 
-app.use(arcjetMiddleware);
+// Define paths that should skip Arcjet
+const excludeArcjetPaths = ["/api/v1/users/webhooks/clerk"];
+
+app.use((req, res, next) => {
+  if (excludeArcjetPaths.includes(req.path)) {
+    return next();
+  }
+  return arcjetMiddleware(req, res, next);
+});
 
 // ROUTES
 app.get("/api/v1/health", (_: Request, res: Response) => {
